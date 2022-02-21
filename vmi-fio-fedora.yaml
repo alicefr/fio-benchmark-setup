@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: block-to-test
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Block
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: rook-ceph-block
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fio-output
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: local
+---
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata:
+  labels:
+    special: vmi-fio-fedora
+  name: vmi-fio-fedora
+spec:
+  domain:
+    devices:
+      disks:
+      - disk:
+          bus: virtio
+        name: containerdisk
+      - disk:
+          bus: virtio
+        name: cloudinitdisk
+      - disk:
+          bus: virtio
+        name: fio-containerdisk
+      - disk:
+          bus: virtio
+        name: pvcdisk
+      filesystems:
+        - name: fio-output
+          virtiofs: {}
+    resources:
+      requests:
+        memory: 1024M
+  terminationGracePeriodSeconds: 0
+  volumes:
+  - containerDisk:
+      image: registry:5000/kubevirt/fedora-with-test-tooling-container-disk:devel
+    name: containerdisk
+  - cloudInitNoCloud:
+      userData: |-
+        #cloud-config
+        password: fedora
+        chpasswd: { expire: False }
+        runcmd:
+          - mkdir -p /test-fio
+          - mkdir -p /test-fio/output
+          - mount /dev/vdc /test-fio
+          - mount --bind /dev /test-fio/dev
+          - mount --bind /sys /test-fio/sys
+          - mount --bind /proc /test-fio/proc
+          - mount -t virtiofs fio-output  /test-fio/output
+    name: cloudinitdisk
+  - containerDisk:
+      image: registry:5000/kubevirt/fio-containerdisk:latest
+    name: fio-containerdisk
+  - name: pvcdisk
+    persistentVolumeClaim:
+      claimName: block-to-test
+  - name: fio-output
+    persistentVolumeClaim:
+      claimName: fio-output
