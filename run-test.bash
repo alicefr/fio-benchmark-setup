@@ -18,4 +18,3 @@ ${CONTAINER_RUNTIME} run --security-opt label=disable -ti \
 	-v ${DEVICE}:/dev/device-to-test \
 	fio \
 	fio /fio-jobs/*.fio --output fio.log
-
