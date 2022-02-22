@@ -1,2 +1,4 @@
 fio-jobs/
 *.swp
+*.qcow2
+Dockerfile.cd
