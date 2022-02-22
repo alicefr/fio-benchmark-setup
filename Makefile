@@ -20,5 +20,8 @@ generate-fio-jobs:
 	fio \
 	-d /dev/$(DEVICE_IN_CONTAINER) -r $(TIME_RUNNING_TEST) -m $(TEST_FLAVOR) -b $(BLOCKSIZE) -s -x fio
 
+fio-containerdisk:
+	./create-containerdisk-fio.sh $(IMAGE)
+
 clean:
 	rm -rf $(OUTPUT_DIR) $(FIO_JOBS_DIR)
