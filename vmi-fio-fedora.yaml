@@ -66,11 +66,8 @@ spec:
           - mkdir -p /test-fio
           - mkdir -p /test-fio/output
           - mount /dev/vdc /test-fio
-          - mount --bind /dev /test-fio/dev
-          - mount --bind /sys /test-fio/sys
-          - mount --bind /proc /test-fio/proc
+          - mkdir -p /test-fio/output
           - mount -t virtiofs fio-output  /test-fio/output
-          - ln -s /dev/vdd /test-fio/dev/device-to-test
     name: cloudinitdisk
   - containerDisk:
       image: registry:5000/kubevirt/fio-containerdisk:latest
